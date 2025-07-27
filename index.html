@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pixel Art Maker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        .color-picker {
+            margin: 10px;
+        }
+        .grid-size {
+            margin: 10px;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #pixel-grid {
+            display: inline-block;
+            border: 2px solid #333;
+            background-color: white;
+            max-width: 800px;
+            max-height: 800px;
+        }
+        .pixel-row {
+            display: flex;
+        }
+        .pixel {
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pixel Art Maker</h1>
+    <div class="controls">
+        <input type="color" id="colorPicker" class="color-picker" value="#000000">
+        <input type="number" id="gridSize" class="grid-size" min="1" max="100" value="16">
+        <button id="createGrid">Create Grid</button>
+        <button id="clearGrid">Clear Grid</button>
+        <button id="download">Download</button>
+    </div>
+    <div id="pixel-grid"></div>
+    <script>
+        const colorPicker = document.getElementById('colorPicker');
+        const gridSizeInput = document.getElementById('gridSize');
+        const createGridBtn = document.getElementById('createGrid');
+        const clearGridBtn = document.getElementById('clearGrid');
+        const downloadBtn = document.getElementById('download');
+        const pixelGrid = document.getElementById('pixel-grid');
+        let currentColor = colorPicker.value;
+        
+        colorPicker.addEventListener('input', () => {
+            currentColor = colorPicker.value;
+        });
+        
+        createGridBtn.addEventListener('click', createGrid);
+        clearGridBtn.addEventListener('click', clearGrid);
+        downloadBtn.addEventListener('click', downloadImage);
+        
+        function createGrid() {
+            pixelGrid.innerHTML = '';
+            const size = parseInt(gridSizeInput.value);
+            const pixelSize = Math.min(800 / size, 40);
+            
+            for (let i = 0; i < size; i++) {
+                const row = document.createElement('div');
+                row.className = 'pixel-row';
+                
+                for (let j = 0; j < size; j++) {
+                    const pixel = document.createElement('div');
+                    pixel.className = 'pixel';
+                    pixel.style.width = `${pixelSize}px`;
+                    pixel.style.height = `${pixelSize}px`;
+                    pixel.style.backgroundColor = 'white';
+                    
+                    pixel.addEventListener('click', () => {
+                        pixel.style.backgroundColor = currentColor;
+                    });
+                    
+                    pixel.addEventListener('mousedown', () => {
+                        isDrawing = true;
+                    });
+                    
+                    pixel.addEventListener('mouseenter', () => {
+                        if (isDrawing) {
+                            pixel.style.backgroundColor = currentColor;
+                        }
+                    });
+                    
+                    row.appendChild(pixel);
+                }
+                
+                pixelGrid.appendChild(row);
+            }
+        }
+        
+        let isDrawing = false;
+        document.addEventListener('mousedown', () => {
+            isDrawing = true;
+        });
+        
+        document.addEventListener('mouseup', () => {
+            isDrawing = false;
+        });
+        
+        function clearGrid() {
+            const pixels = document.querySelectorAll('.pixel');
+            pixels.forEach(pixel => {
+                pixel.style.backgroundColor = 'white';
+            });
+        }
+        
+        function downloadImage() {
+            const size = parseInt(gridSizeInput.value);
+            const pixelSize = Math.min(800 / size, 40);
+            const canvas = document.createElement('canvas');
+            canvas.width = size * pixelSize;
+            canvas.height = size * pixelSize;
+            const ctx = canvas.getContext('2d');
+            
+            const rows = document.querySelectorAll('.pixel-row');
+            rows.forEach((row, rowIndex) => {
+                const pixels = row.querySelectorAll('.pixel');
+                pixels.forEach((pixel, pixelIndex) => {
+                    ctx.fillStyle = pixel.style.backgroundColor;
+                    ctx.fillRect(pixelIndex * pixelSize, rowIndex * pixelSize, pixelSize, pixelSize);
+                });
+            });
+            
+            const link = document.createElement('a');
+            link.download = 'pixel-art.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        createGrid();
+    </script>
+</body>
+</html>
